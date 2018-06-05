@@ -1,0 +1,77 @@
+= Subtxt
+:github_url: https://github.com/DocOps/subtxt
+
+A simple find-and-replace tool using regular expressions to match and manipulate strings of text across multiple files.
+This is a quick-and-dirty, multi-procedure, directory-wide file rewriter.
+Subtxt takes a directory to process and a set of patterns to find and replace.
+
+== Quickstart
+
+[NOTE]
+This utility requires Ruby runtime, which comes installed on Macs and most Linux distributions but requires a link:https://rubyinstaller.org/[download] and some legwork for Windows.
+
+To *install*, run:
+
+ gem install subtxt
+
+To *use*: `subtxt -p patterns.txt`, where `patterns.txt` is any file with any extension containing patterns in he following format:
+
+[source,regex]
+----
+find pattern
+replace pattern
+
+(pattern|string|content)-(to)-(find)
+\1 \2 replace
+
+delete this text
+
+
+regular expression pattern
+tokenized substitute output
+
+(Some text that needs) (to be split onto 2 lines)
+\1\n\2
+
+EOF
+----
+
+For each pair of strings, the first becomes the search pattern and the second becomes the replace pattern.
+Follow each pair with a blank line.
+To delete matched patterns, simply replace with nothing by providing a blank line.
+End the file with `EOF` on its own line.
+
+See `subtxt --help` for more.
+
+== Including Subtxt into a Ruby Application
+
+Add this line to your application's Gemfile:
+
+[source,ruby]
+----
+gem 'subtxt'
+----
+
+And then execute:
+
+ bundle
+
+Or install it yourself as:
+
+ gem install subtxt
+
+
+== Development
+
+After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to link:https://rubygems.org[rubygems.org].
+
+== Contributing
+
+Bug reports and pull requests are welcome on GitHub at https://github.com/DocOps/subtxt. This project is intended to be a safe, welcoming space for collaboration.
+See <<code-of-conduct>>.
+
+== Code of Conduct
+
+Everyone interacting in the Subtxt project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the link:{github_url}/blob/master/CODE_OF_CONDUCT.adoc[code of conduct].
