@@ -182,7 +182,7 @@ parser = OptionParser.new do|opts|
   end
 
   opts.on_tail('-v', 'Show Subtxt release version') do
-    puts "You're using Subtxt v#{Subtxt::VERSION}"
+    puts "You're using Subtxt v#{Subtxt::VERSION}. Get the latest with gem update subtxt"
     exit
   end
 end
