@@ -42,8 +42,12 @@ def load_patterns pfile
 end
 
 def subtexts opts
+  unless opts[:patterns]
+    @logger.error "Missing patterns file!"
+    exit
+  end
   patterns = load_patterns(opts[:patterns])
-  @logger.info "Reading patterns from #{@options[:patterns]}"
+  @logger.info "Reading patterns from #{opts[:patterns]}"
   routine = {}
   routine['files_count'] = 0
   routine['files_changed'] = []
@@ -130,12 +134,12 @@ parser = OptionParser.new do|opts|
   (#{@expath_def}/ by default) after replacing each matched pattern with
   its pair.
 
-  Usage: subtxt [path/to/ingest/dir] [options]
+  Usage: subtxt [path/to/patterns.ext] [options]
   Options:
   """
 
   unless ARGV[0]
-    @logger.error "You must at least provide a patterns file option. For help, use\nsubtxt --help"
+    @logger.error "You must at least provide a patterns file argument. For help, use\nsubtxt --help"
     exit
   end
 
