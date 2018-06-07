@@ -130,12 +130,12 @@ parser = OptionParser.new do|opts|
   (#{@expath_def}/ by default) after replacing each matched pattern with
   its pair.
 
-  Usage: subtxt [path/to/ingest/dir] [options]
+  Usage: subtxt [path/to/patterns.ext] [options]
   Options:
   """
 
   unless ARGV[0]
-    @logger.error "You must at least provide a patterns file option. For help, use\nsubtxt --help"
+    @logger.error "You must at least provide a patterns file argument. For help, use\nsubtxt --help"
     exit
   end
 
@@ -190,6 +190,7 @@ parser.parse!
 
 # options postprocessing
 @options[:ingestpath] = "#{@options[:ingestdir]}/*.#{@options[:filext]}"
+@logger.error "You must pass a patterns file." unless @options[:patterns]
 if @options[:verbose]
   @logger.level = Logger::INFO
 end
