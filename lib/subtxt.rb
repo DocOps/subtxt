@@ -2,6 +2,7 @@ require "subtxt/version"
 require 'optparse'
 require 'logger'
 require 'fileutils'
+require 'yaml'
 
 @ingestdir_def = "."
 @filext_def = "*"
@@ -44,22 +45,32 @@ def subtexts opts
   patterns = load_patterns(opts[:patterns])
   @logger.info "Reading patterns from #{@options[:patterns]}"
   routine = {}
-  routine['filesprocessed'] = 0
+  routine['files_count'] = 0
+  routine['files_changed'] = []
+  routine['files_changed_count'] = 0
   routine['log'] = []
   Dir.glob(opts[:ingestpath]) do |f|
     text = File.read(f)
     @logger.debug "Processing file: #{File.basename(f)}"
     sandr = []
     patterns.each do |rec|
-      ptn = rec['fnd']
-      replace = rec['rep'].gsub(/\\n/, "\n")
-      text.gsub!(/#{ptn}/, replace)
+      fnd = rec['fnd']
+      rep = rec['rep'].gsub(/\\n/, "\n")
       if opts[:verbose] or opts[:debug]
-        matches = text.gsub(/#{ptn}/).count
+        matches = text.gsub(/#{fnd}/).count
+        syms = text.gsub(/#{fnd}/) {|sym| "-#{sym}-"}
+        if matches > 0
+          sandr << {:pattern => fnd, :matches => matches, :syms => syms}
+          unless routine['files_changed'].include? f
+            routine['files_changed'] << f
+          end
+        end
       end
-      sandr << {:pattern => ptn, :matches => matches}
+      text.gsub!(/#{fnd}/, rep)
     end
-    routine['log'] << {:file => f, :matchlog => sandr }
+    if opts[:verbose] or opts[:debug]
+      routine['log'] << {:file => f, :matchlog => sandr }
+    end
     unless opts[:expext]
       outfile = File.basename f
     else
@@ -70,21 +81,24 @@ def subtexts opts
       FileUtils::mkdir_p(opts[:expath]) unless File.exists?(opts[:expath])
       File.open("#{opts[:expath]}/#{outfile}", 'w') { |file| file.write(text) }
       @logger.debug "File saved (#{outfile})"
-      routine['filesprocessed'] += 1
+      routine['files_count'] += 1
     rescue Exception => ex
       raise "Failure: #{ex}"
     end
-    @logger.info display_results(routine)
   end
+  @logger.info display_results(routine)
 end
 
 def display_results routine={}
   raise "NoRecordsFound" unless routine['log'].count
-  output = ""
+  output = "Files processed: #{routine['files_count']}"
+  output << "\nFiles changed: #{routine['files_changed'].size}"
   routine['log'].each do |doc|
     output << "\nFile: #{doc[:file]}"
     output << "\nMatches:"
-
+    doc[:matchlog].each do |mch|
+      output << "\n#{mch[:matches]}: #{mch[:pattern]}"
+    end
   end
   output
 end
@@ -126,15 +140,15 @@ parser = OptionParser.new do|opts|
   end
 
   if ARGV[0].split("").first == "-"
-    opts.on('-i PATH', '--ingestdir PATH', "Ingest files from this directory. Defaults to current directory.\n\t\t\t\t\tSuperceded if a path is passed as the first argument\n\t\t\t\t\t(subtxt path/to/files -p patterns.rgx). Ex: -i path/to/ingest/dir") do |n|
-      @options[:ingestdir] = n;
+    opts.on('-p PATH', '--patterns PATH', "Full (relative or absolute) path to a text file\n\t\t\t\t\tcontaining find & replace patterns in the designated format.\n\t\t\t\t\tREQUIRED. Ex: -p path/to/patterns.rgxp") do |n|
+      @options[:patterns] = n;
     end
   else # the first arg has no leading - or --, it must be our path
-    @options[:ingestdir] = ARGV[0]
+    @options[:patterns] = ARGV[0]
   end
 
-  opts.on('-p PATH', '--patterns PATH', "Full (relative or absolute) path to a text file\n\t\t\t\t\tcontaining find & replace patterns in the designated format.\n\t\t\t\t\tREQUIRED. Ex: -p path/to/patterns.rgxp") do |n|
-    @options[:patterns] = n;
+  opts.on('-s PATH', '--source PATH', "Ingest files from this directory. Defaults to current directory.\n\t\t\t\t\tSuperceded if a path is passed as the first argument\n\t\t\t\t\t(subtxt path/to/files -p patterns.rgx). Ex: -i path/to/ingest/dir") do |n|
+    @options[:ingestdir] = n;
   end
 
   ## TODO recursion
