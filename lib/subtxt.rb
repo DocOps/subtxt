@@ -42,8 +42,12 @@ def load_patterns pfile
 end
 
 def subtexts opts
+  unless opts[:patterns]
+    @logger.error "Missing patterns file!"
+    exit
+  end
   patterns = load_patterns(opts[:patterns])
-  @logger.info "Reading patterns from #{@options[:patterns]}"
+  @logger.info "Reading patterns from #{opts[:patterns]}"
   routine = {}
   routine['files_count'] = 0
   routine['files_changed'] = []
@@ -190,7 +194,6 @@ parser.parse!
 
 # options postprocessing
 @options[:ingestpath] = "#{@options[:ingestdir]}/*.#{@options[:filext]}"
-@logger.error "You must pass a patterns file." unless @options[:patterns]
 if @options[:verbose]
   @logger.level = Logger::INFO
 end
