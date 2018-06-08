@@ -59,7 +59,8 @@ def subtexts opts
     sandr = []
     patterns.each do |rec|
       fnd = rec['fnd']
-      rep = rec['rep'].gsub(/\\n/, "\n")
+      rep = rec['rep'].gsub('\n', "\n")
+      rep = rep.gsub('\r', "\r")
       if opts[:verbose] or opts[:debug]
         matches = text.gsub(/#{fnd}/).count
         syms = text.gsub(/#{fnd}/) {|sym| "-#{sym}-"}
@@ -117,7 +118,8 @@ parser = OptionParser.new do|opts|
 
   Pattern files are formatted in 3-row sets. The first row is the find pattern,
   the second row is the replace pattern, and the third row delimits the set for
-  the convenience of your eyeballs. Like so:
+  the convenience of your eyeballs. The file must terminate with an explicit
+  ""EOF"" Like so:
   \t---------------------------------------
   \tfind pattern
   \treplace pattern
@@ -144,7 +146,7 @@ parser = OptionParser.new do|opts|
   end
 
   if ARGV[0].split("").first == "-"
-    opts.on('-p PATH', '--patterns PATH', "Full (relative or absolute) path to a text file\n\t\t\t\t\tcontaining find & replace patterns in the designated format.\n\t\t\t\t\tREQUIRED. Ex: -p path/to/patterns.rgxp") do |n|
+    opts.on('-p PATH', '--patterns PATH', "Full (relative or absolute) path to a text file containing\n\t\t\t\t\tfind & replace patterns in the designated format.\n\t\t\t\t\tREQUIRED. Ex: -p path/to/patterns.rgxp") do |n|
       @options[:patterns] = n;
     end
   else # the first arg has no leading - or --, it must be our path
