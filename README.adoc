@@ -14,7 +14,7 @@ To *install*, run:
 
  gem install subtxt
 
-To *use*: `subtxt -p patterns.txt`, where `patterns.txt` is any file with any extension containing patterns in he following format:
+To *use*: `subtxt -p patterns.txt`, where `patterns.txt` is any file with any extension containing patterns in the following format:
 
 [source,regex]
 ----
