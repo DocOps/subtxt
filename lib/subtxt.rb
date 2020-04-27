@@ -19,22 +19,24 @@ require 'yaml'
   "#{severity}: #{msg}\n"
 end
 
-def load_patterns pfile
+def load_patterns pfiles
+  files = pfiles.split(",")
   records = []
-  File.open(pfile, "r") do |pats|
-    pair = {}
-    rowct = 0
-    pats.each_line do |row|
-      break if row.chomp.downcase == "eof"
-      unless pair['fnd'] and pair['rep']
-        unless pair['fnd']
-          pair['fnd'] = row.chomp
+  files.each do |pfile|
+    File.open(pfile, "r") do |pats|
+      pair = {}
+      pats.each_line do |row|
+        break if row.chomp.downcase == "eof"
+        unless pair['fnd'] and pair['rep']
+          unless pair['fnd']
+            pair['fnd'] = row.chomp
+          else
+            pair['rep'] = row.chomp
+          end
         else
-          pair['rep'] = row.chomp
+          records << pair
+          pair = {}
         end
-      else
-        records << pair
-        pair = {}
       end
     end
   end
@@ -125,7 +127,7 @@ parser = OptionParser.new do|opts|
   \treplace pattern
   \t
   \t(pattern|string|content)-(to)-(find)
-  \t$1 $2 replace
+  \t\1 \2 replace
   \t
   \tregular expression pattern
   \ttokenized substitute output
@@ -146,14 +148,14 @@ parser = OptionParser.new do|opts|
   end
 
   if ARGV[0].split("").first == "-"
-    opts.on('-p PATH', '--patterns PATH', "Full (relative or absolute) path to a text file containing\n\t\t\t\t\tfind & replace patterns in the designated format.\n\t\t\t\t\tREQUIRED. Ex: -p path/to/patterns.rgxp") do |n|
+    opts.on('-p', '--patterns PATH[,PATH]', "Full (relative or absolute) path to a text file containing","find & replace patterns in the designated format.","REQUIRED. Ex: -p path/to/patterns.rgxp,path/to/secondary-patterns.txt") do |n|
       @options[:patterns] = n;
     end
   else # the first arg has no leading - or --, it must be our path
     @options[:patterns] = ARGV[0]
   end
 
-  opts.on('-s PATH', '--source PATH', "Ingest files from this directory. Defaults to current directory.\n\t\t\t\t\tSuperceded if a path is passed as the first argument\n\t\t\t\t\t(subtxt path/to/files -p patterns.rgx). Ex: -i path/to/ingest/dir") do |n|
+  opts.on('-s PATH', '--source PATH', "Ingest files from this directory. Defaults to current directory.","\tSuperceded if a path is passed as the first argument","\t(subtxt path/to/files -p patterns.rgx). Ex: -i path/to/ingest/dir") do |n|
     @options[:ingestdir] = n;
   end
 
@@ -162,7 +164,7 @@ parser = OptionParser.new do|opts|
   #   @options[:recursive] = true
   # end
 
-  opts.on('-f STRING', '--filext STRING', "Restrict ingested files to this extension. The first dot (.) is implied.\n\t\t\t\t\tEx: -f htm") do |n|
+  opts.on('-f STRING', '--filext STRING', "Restrict ingested files to this extension. The first dot (.) is implied.","\tEx: -f htm") do |n|
     @options[:filext] = n;
   end
 
@@ -170,7 +172,7 @@ parser = OptionParser.new do|opts|
     @options[:expath] = n;
   end
 
-  opts.on('--expext STRING', "The export file\'s extension to reassign for all files. The first dot (.)\n\t\t\t\t\tis implied. Defaults to same extension as original. Ex: --expext htm") do |n|
+  opts.on('--expext STRING', "The export file\'s extension to reassign for all files. The first dot (.)","is implied. Defaults to same extension as original. Ex: --expext htm") do |n|
     @options[:expext] = n;
   end
 
